@@ -55,7 +55,9 @@ public class SupabaseService {
     }
 
     public static String escapeJson(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
@@ -65,7 +67,9 @@ public class SupabaseService {
 
     public static List<String> extractJsonObjects(String json) {
         List<String> objects = new ArrayList<>();
-        if (json == null || json.trim().isEmpty()) return objects;
+        if (json == null || json.trim().isEmpty()) {
+            return objects;
+        }
 
         Pattern pattern = Pattern.compile("\\{[^{}]*\\}");
         Matcher matcher = pattern.matcher(json);
@@ -77,14 +81,20 @@ public class SupabaseService {
     }
 
     public static String getString(String json, String key) {
-        if (json == null) return "";
+        if (json == null) {
+            return "";
+        }
         String pattern = "\"" + key + "\"\\s*:\\s*\"([^\"]*)\"";
         Matcher matcher = Pattern.compile(pattern).matcher(json);
-        if (matcher.find()) return matcher.group(1);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
 
         pattern = "\"" + key + "\"\\s*:\\s*([^,}\\\"]+)";
         matcher = Pattern.compile(pattern).matcher(json);
-        if (matcher.find()) return matcher.group(1).trim();
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
 
         return "";
     }
@@ -113,7 +123,6 @@ public class SupabaseService {
     // ==========================================
     // AUTHENTICATION & LOGIN
     // ==========================================
-
     public static boolean signUp(String email, String password, String name, String department) {
         String authJson = String.format(
                 "{\"email\":\"%s\",\"password\":\"%s\",\"data\":{\"name\":\"%s\",\"role\":\"Student\",\"department\":\"%s\"}}",
@@ -121,10 +130,14 @@ public class SupabaseService {
         );
 
         String response = sendRequest("/auth/v1/signup", "POST", authJson);
-        if (response == null) return false;
+        if (response == null) {
+            return false;
+        }
 
         String uid = getString(response, "id");
-        if (uid.isEmpty()) return false;
+        if (uid.isEmpty()) {
+            return false;
+        }
 
         return addStudentToCloud(uid, name, email, department, 0.0);
     }
@@ -136,10 +149,14 @@ public class SupabaseService {
         );
 
         String response = sendRequest("/auth/v1/signup", "POST", authJson);
-        if (response == null) return false;
+        if (response == null) {
+            return false;
+        }
 
         String uid = getString(response, "id");
-        if (uid.isEmpty()) return false;
+        if (uid.isEmpty()) {
+            return false;
+        }
 
         String teacherJson = String.format(
                 "{\"id\":\"%s\",\"name\":\"%s\",\"email\":\"%s\",\"department\":\"%s\"}",
@@ -180,7 +197,6 @@ public class SupabaseService {
     // ==========================================
     // 1. STUDENTS (Table: students)
     // ==========================================
-
     public static boolean addStudentToCloud(String id, String name, String email, String department, double cgpa) {
         String json = String.format(
                 "{\"id\":\"%s\",\"name\":\"%s\",\"email\":\"%s\",\"department\":\"%s\",\"cgpa\":%.2f}",
@@ -220,7 +236,6 @@ public class SupabaseService {
     // ==========================================
     // 2. TEACHERS (Table: teachers)
     // ==========================================
-
     public static String searchTeacherByIdFromCloud(String id) {
         return getOrDefault("/rest/v1/teachers?id=eq." + encode(id) + "&select=*");
     }
@@ -236,8 +251,6 @@ public class SupabaseService {
     // ==========================================
     // 3. COURSES MANAGE (Table: courses_manage)
     // ==========================================
-
-    // Admin adds a course (student_email is null)
     public static boolean addCourseToCloud(String courseCode, String courseName, int semester, String department) {
         String json = String.format(
                 "{\"course_code\":\"%s\",\"course_name\":\"%s\",\"semester\":%d,\"department\":\"%s\"}",
@@ -246,22 +259,18 @@ public class SupabaseService {
         return sendRequest("/rest/v1/courses_manage", "POST", json) != null;
     }
 
-    // Admin fetches courses for a specific semester
     public static String getCoursesBySemesterFromCloud(int semester) {
         return getOrDefault("/rest/v1/courses_manage?semester=eq." + semester + "&student_email=is.null&select=*&order=id.asc");
     }
 
-    // Admin fetches all courses
     public static String getAllCoursesFromCloud() {
         return getOrDefault("/rest/v1/courses_manage?student_email=is.null&select=*&order=semester.asc,id.asc");
     }
 
-    // Admin deletes a course
     public static boolean deleteCourseFromCloud(int courseId) {
         return sendRequest("/rest/v1/courses_manage?id=eq." + courseId, "DELETE", "") != null;
     }
 
-    // Admin assigns teacher to course
     public static boolean assignCourseToTeacherInCloud(String teacherId, String teacherEmail, String courseCode, String courseName) {
         String json = String.format(
                 "{\"teacher_email\":\"%s\",\"teacher_name\":\"%s\"}",
@@ -270,12 +279,10 @@ public class SupabaseService {
         return sendRequest("/rest/v1/courses_manage?course_code=eq." + encode(courseCode) + "&student_email=is.null", "PATCH", json) != null;
     }
 
-    // Teacher views assigned courses
     public static String getTeacherAssignedCoursesFromCloud(String teacherEmail) {
         return getOrDefault("/rest/v1/courses_manage?teacher_email=eq." + encode(teacherEmail) + "&student_email=is.null&select=*&order=id.asc");
     }
 
-    // Student enrolls in course
     public static boolean enrollStudentCourseInCloud(String studentId, String studentEmail, int semester, String courseCode, String courseName) {
         String json = String.format(
                 "{\"student_email\":\"%s\",\"semester\":%d,\"course_code\":\"%s\",\"course_name\":\"%s\",\"department\":\"CS\"}",
@@ -284,26 +291,69 @@ public class SupabaseService {
         return sendRequest("/rest/v1/courses_manage", "POST", json) != null;
     }
 
-    // Student enrolled courses
     public static String getStudentEnrolledCoursesFromCloud(String studentEmail) {
         return getOrDefault("/rest/v1/courses_manage?student_email=eq." + encode(studentEmail) + "&select=*&order=semester.asc,id.asc");
     }
 
-    // Student edit/delete courses for semester
     public static boolean deleteStudentEnrolledCoursesInCloud(String studentEmail, int semester) {
         return sendRequest("/rest/v1/courses_manage?student_email=eq." + encode(studentEmail) + "&semester=eq." + semester, "DELETE", "") != null;
     }
 
-    // Count enrolled students
     public static int getEnrolledStudentCountForCourse(String courseCode) {
         String json = getOrDefault("/rest/v1/courses_manage?course_code=eq." + encode(courseCode) + "&student_email=not.is.null&select=id");
         return extractJsonObjects(json).size();
     }
 
     // ==========================================
+    // 4. ANNOUNCEMENTS / NOTICES (Table: announcements)
+    // ==========================================
+    public static boolean postAnnouncementToCloud(String title, String message, String targetRole) {
+        String json = String.format(
+                "{\"title\":\"%s\",\"message\":\"%s\",\"target_role\":\"%s\"}",
+                escapeJson(title), escapeJson(message), escapeJson(targetRole)
+        );
+        return sendRequest("/rest/v1/announcements", "POST", json) != null;
+    }
+
+    public static String getAllAnnouncementsFromCloud() {
+        return getOrDefault("/rest/v1/announcements?select=*&order=id.desc");
+    }
+
+    public static boolean deleteAnnouncementFromCloud(int id) {
+        return sendRequest("/rest/v1/announcements?id=eq." + id, "DELETE", "") != null;
+    }
+
+    public static void displayAnnouncements(String role) {
+        String json = getAllAnnouncementsFromCloud();
+        List<String> records = extractJsonObjects(json);
+
+        System.out.println("\n=================================");
+        System.out.println("     NOTICE BOARD / ANNOUNCEMENTS");
+        System.out.println("=================================");
+
+        int count = 0;
+        for (String rec : records) {
+            String targetRole = getString(rec, "target_role");
+            if (role.equalsIgnoreCase("ADMIN") || targetRole.equalsIgnoreCase("ALL") || targetRole.equalsIgnoreCase(role)) {
+                int id = getInt(rec, "id");
+                String title = getString(rec, "title");
+                String message = getString(rec, "message");
+                System.out.println("[" + id + "] " + title.toUpperCase() + " (For: " + targetRole + ")");
+                System.out.println("Message: " + message);
+                System.out.println("---------------------------------");
+                count++;
+            }
+        }
+
+        if (count == 0) {
+            System.out.println("No announcements available right now.");
+        }
+        System.out.println("=================================");
+    }
+
+    // ==========================================
     // DISPLAY HELPER METHODS
     // ==========================================
-
     public static void displayFormattedProfile(String json, String type) {
         List<String> objects = extractJsonObjects(json);
         if (objects.isEmpty()) {
@@ -322,7 +372,9 @@ public class SupabaseService {
 
         if (type.equalsIgnoreCase("Student")) {
             double cgpaVal = getDouble(profile, "cgpa");
-            if (cgpaVal > 0) System.out.println("CGPA        : " + cgpaVal);
+            if (cgpaVal > 0) {
+                System.out.println("CGPA        : " + cgpaVal);
+            }
         }
         System.out.println("=================================");
     }

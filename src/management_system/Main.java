@@ -11,9 +11,9 @@ public class Main {
         int choice = 0;
 
         do {
-            System.out.println("\n=================================");
+            System.out.println("\n=====================================================");
             System.out.println("         Student/Teacher/Admin LOGIN SYSTEM");
-            System.out.println("=================================");
+            System.out.println("=====================================================");
             System.out.println("1. Sign Up");
             System.out.println("2. Login");
             System.out.println("3. Exit");
@@ -29,9 +29,9 @@ public class Main {
             input.nextLine();
 
             if (choice == 1) {
-                System.out.println("\n=================================");
+                System.out.println("\n=====================================================");
                 System.out.println("       SELECT ROLE FOR SIGN UP");
-                System.out.println("=================================");
+                System.out.println("=====================================================");
                 System.out.println("1. Student");
                 System.out.println("2. Teacher");
                 System.out.print("\nEnter your choice: ");
@@ -137,7 +137,8 @@ public class Main {
                         System.out.println("6. Search Teacher by UID");
                         System.out.println("7. Assign Course to Teacher");
                         System.out.println("8. Manage Available Courses ");
-                        System.out.println("9. Logout");
+                        System.out.println("9. Manage Announcements / Notice Board");
+                        System.out.println("10. Logout");
                         System.out.print("\nEnter your choice: ");
 
                         if (!input.hasNextInt()) {
@@ -427,13 +428,99 @@ public class Main {
                                 break;
 
                             case 9:
+                                int noticeAdminChoice = 0;
+                                do {
+                                    System.out.println("\n=================================");
+                                    System.out.println("     ANNOUNCEMENT MANAGEMENT");
+                                    System.out.println("=================================");
+                                    System.out.println("1. Post New Announcement");
+                                    System.out.println("2. View All Announcements");
+                                    System.out.println("3. Delete Announcement");
+                                    System.out.println("4. Back to Main Admin Menu");
+                                    System.out.print("\nEnter choice: ");
+
+                                    if (!input.hasNextInt()) {
+                                        System.out.println("Invalid choice.");
+                                        input.nextLine();
+                                        continue;
+                                    }
+                                    noticeAdminChoice = input.nextInt();
+                                    input.nextLine();
+
+                                    switch (noticeAdminChoice) {
+                                        case 1:
+                                            System.out.print("Enter Notice Title: ");
+                                            String title = input.nextLine();
+                                            System.out.print("Enter Notice Message: ");
+                                            String msg = input.nextLine();
+
+                                            System.out.println("\nSelect Target Audience:");
+                                            System.out.println("1. ALL (Students & Teachers)");
+                                            System.out.println("2. STUDENTS Only");
+                                            System.out.println("3. TEACHERS Only");
+                                            System.out.print("Enter choice (1-3): ");
+
+                                            if (!input.hasNextInt()) {
+                                                System.out.println("Invalid input.");
+                                                input.nextLine();
+                                                break;
+                                            }
+                                            int audChoice = input.nextInt();
+                                            input.nextLine();
+
+                                            String targetRole = "ALL";
+                                            if (audChoice == 2) {
+                                                targetRole = "STUDENT"; 
+                                            }else if (audChoice == 3) {
+                                                targetRole = "TEACHER";
+                                            }
+
+                                            boolean posted = SupabaseService.postAnnouncementToCloud(title, msg, targetRole);
+                                            if (posted) {
+                                                System.out.println("\nAnnouncement posted successfully for " + targetRole + "!");
+                                            } else {
+                                                System.out.println("\nFailed to post announcement.");
+                                            }
+                                            break;
+
+                                        case 2:
+                                            SupabaseService.displayAnnouncements("ADMIN");
+                                            break;
+
+                                        case 3:
+                                            System.out.print("Enter Announcement ID to delete: ");
+                                            if (!input.hasNextInt()) {
+                                                System.out.println("Invalid ID.");
+                                                input.nextLine();
+                                                break;
+                                            }
+                                            int delNoticeId = input.nextInt();
+                                            input.nextLine();
+                                            if (SupabaseService.deleteAnnouncementFromCloud(delNoticeId)) {
+                                                System.out.println("\nAnnouncement deleted successfully!");
+                                            } else {
+                                                System.out.println("\nFailed to delete announcement.");
+                                            }
+                                            break;
+
+                                        case 4:
+                                            System.out.println("Returning to Admin Menu...");
+                                            break;
+
+                                        default:
+                                            System.out.println("Invalid choice.");
+                                    }
+                                } while (noticeAdminChoice != 4);
+                                break;
+
+                            case 10:
                                 System.out.println("\nAdmin Logged Out.");
                                 break;
 
                             default:
                                 System.out.println("\nInvalid choice.");
                         }
-                    } while (adminChoice != 9);
+                    } while (adminChoice != 10);
 
                 } else {
                     System.out.println("\nVerifying credentials with Supabase");
@@ -462,7 +549,8 @@ public class Main {
                                 System.out.println("1. View My Enrolled Courses");
                                 System.out.println("2. Register Courses for a Semester");
                                 System.out.println("3. Re-register Semester Courses");
-                                System.out.println("4. Logout");
+                                System.out.println("4. View Announcements / Notice Board");
+                                System.out.println("5. Logout");
                                 System.out.print("\nEnter your choice: ");
 
                                 if (!input.hasNextInt()) {
@@ -571,13 +659,17 @@ public class Main {
                                         break;
 
                                     case 4:
+                                        SupabaseService.displayAnnouncements("STUDENT");
+                                        break;
+
+                                    case 5:
                                         System.out.println("\nStudent Logged Out.");
                                         break;
 
                                     default:
                                         System.out.println("\nInvalid choice.");
                                 }
-                            } while (studentChoice != 4);
+                            } while (studentChoice != 5);
 
                         } else {
 
@@ -593,8 +685,43 @@ public class Main {
                                 System.out.println("\n========== YOUR PROFILE DETAILS ==========");
                                 SupabaseService.displayFormattedProfile(teacherProfile, "Teacher");
 
-                                String teacherAssignedCourses = SupabaseService.getTeacherAssignedCoursesFromCloud(email);
-                                SupabaseService.displayFormattedTeacherCourses(teacherAssignedCourses);
+                                int teacherChoice = 0;
+                                do {
+                                    System.out.println("\n=================================");
+                                    System.out.println("        TEACHER DASHBOARD");
+                                    System.out.println("=================================");
+                                    System.out.println("1. View My Assigned Courses");
+                                    System.out.println("2. View Announcements / Notice Board");
+                                    System.out.println("3. Logout");
+                                    System.out.print("\nEnter your choice: ");
+
+                                    if (!input.hasNextInt()) {
+                                        System.out.println("Invalid choice.");
+                                        input.nextLine();
+                                        continue;
+                                    }
+
+                                    teacherChoice = input.nextInt();
+                                    input.nextLine();
+
+                                    switch (teacherChoice) {
+                                        case 1:
+                                            String teacherAssignedCourses = SupabaseService.getTeacherAssignedCoursesFromCloud(email);
+                                            SupabaseService.displayFormattedTeacherCourses(teacherAssignedCourses);
+                                            break;
+
+                                        case 2:
+                                            SupabaseService.displayAnnouncements("TEACHER");
+                                            break;
+
+                                        case 3:
+                                            System.out.println("\nTeacher Logged Out.");
+                                            break;
+
+                                        default:
+                                            System.out.println("\nInvalid choice.");
+                                    }
+                                } while (teacherChoice != 3);
 
                             } else {
                                 System.out.println("\nLogin successful, but profile record not found in Students or Teachers database.");
