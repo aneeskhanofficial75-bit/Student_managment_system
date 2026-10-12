@@ -12,7 +12,7 @@ public class Main {
 
         do {
             System.out.println("\n=================================");
-            System.out.println("          LOGIN SYSTEM");
+            System.out.println("         Student/Teacher/Admin LOGIN SYSTEM");
             System.out.println("=================================");
             System.out.println("1. Sign Up");
             System.out.println("2. Login");
@@ -46,7 +46,7 @@ public class Main {
                 input.nextLine();
 
                 if (signUpRole == 1) {
-                    
+
                     System.out.println("\n========== STUDENT SIGN UP ==========");
                     System.out.print("Enter Name: ");
                     String name = input.nextLine();
@@ -76,7 +76,7 @@ public class Main {
                         System.out.println("\nStudent Sign Up failed.");
                     }
                 } else if (signUpRole == 2) {
-                
+
                     System.out.println("\n========== TEACHER SIGN UP ==========");
                     System.out.print("Enter Teacher Name: ");
                     String name = input.nextLine();
@@ -107,9 +107,7 @@ public class Main {
                 } else {
                     System.out.println("\nInvalid Role selected.");
                 }
-            } 
-    
-            else if (choice == 2) {
+            } else if (choice == 2) {
                 System.out.println("\n=================================");
                 System.out.println("              LOGIN");
                 System.out.println("=================================");
@@ -187,7 +185,7 @@ public class Main {
 
                                 String newDepartment = input.nextLine();
                                 System.out.print("Enter New CGPA: ");
-                                
+
                                 if (!input.hasNextDouble()) {
                                     System.out.println("Invalid CGPA.");
                                     input.nextLine();
@@ -437,12 +435,9 @@ public class Main {
                         }
                     } while (adminChoice != 9);
 
-                } 
-
-                else {
+                } else {
                     System.out.println("\nVerifying credentials with Supabase");
                     if (SupabaseService.login(email, password)) {
-                        
 
                         String studentProfile = SupabaseService.getStudentProfile(email);
                         List<String> studentObjs = SupabaseService.extractJsonObjects(studentProfile);
@@ -453,10 +448,10 @@ public class Main {
                             System.out.println("    LOGIN SUCCESSFUL STUDENT");
                             System.out.println("=================================");
                             System.out.println("Welcome, " + email);
-                            
+
                             System.out.println("\n========== YOUR PROFILE DETAILS ==========");
                             SupabaseService.displayFormattedProfile(studentProfile, "Student");
-                            
+
                             String studentId = SupabaseService.getString(studentObjs.get(0), "id");
 
                             int studentChoice = 0;
@@ -527,8 +522,7 @@ public class Main {
                                             String cRecord = availableCourses.get(i);
                                             String cCode = SupabaseService.getString(cRecord, "course_code");
                                             String cName = SupabaseService.getString(cRecord, "course_name");
-                                            
-                                            
+
                                             int enrolledCount = SupabaseService.getEnrolledStudentCountForCourse(cCode);
                                             String statusStr = enrolledCount >= 50 ? "[FULL - 50/50]" : "(" + enrolledCount + "/50 Enrolled)";
                                             System.out.println((i + 1) + ". [" + cCode + "] " + cName + " " + statusStr);
@@ -549,8 +543,7 @@ public class Main {
                                                     String selCourse = availableCourses.get(courseNum - 1);
                                                     String cCode = SupabaseService.getString(selCourse, "course_code");
                                                     String cName = SupabaseService.getString(selCourse, "course_name");
-                                                    
-                                                    
+
                                                     int enrolledCount = SupabaseService.getEnrolledStudentCountForCourse(cCode);
                                                     if (enrolledCount >= 50) {
                                                         System.out.println("  Course [" + cCode + "] " + cName + " is FULL! (Limit of 50 students reached: " + enrolledCount + "/50).");
@@ -594,7 +587,7 @@ public class Main {
                             if (!teacherObjs.isEmpty()) {
 
                                 System.out.println("\n=================================");
-                                System.out.println("    LOGIN SUCCESSFUL (TEACHER)");
+                                System.out.println("    LOGIN SUCCESSFUL TEACHER");
                                 System.out.println("=================================");
                                 System.out.println("Welcome, " + email);
                                 System.out.println("\n========== YOUR PROFILE DETAILS ==========");
@@ -612,8 +605,7 @@ public class Main {
                         System.out.println("\nInvalid Email or Password.");
                     }
                 }
-            } 
-            else if (choice == 3) {
+            } else if (choice == 3) {
                 System.out.println("\nProgram Ended");
             } else {
                 System.out.println("\nInvalid choice. Enter 1-3");
